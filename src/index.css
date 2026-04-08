@@ -1,0 +1,11 @@
+/* Tailwind v4 — utility layer for layout, spacing, and responsive tweaks */
+@import 'tailwindcss';
+
+/* App shell baseline (MUI CssBaseline also normalizes) */
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
