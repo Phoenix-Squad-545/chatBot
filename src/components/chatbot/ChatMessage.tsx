@@ -4,6 +4,9 @@ import { Box, Button, Fade, Typography } from '@mui/material'
 import { getQuestionById } from './FormData'
 import { useChatbotThemeOptional } from './UseChatBotTheme'
 import { CHAT_DEFAULT_PRIMARY } from './ChatThemePresets'
+import { Avatar } from "@mui/material"
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined"
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline"
 
 // Types
 interface BaseMessage {
@@ -128,17 +131,29 @@ function DefaultMessageBody({ text, timestamp }: DefaultMessageBodyProps) {
   const { bubbleSx, timeClass } = useBubbleStyles(true)
 
   return (
-    <Box
-      className="max-w-[85%] rounded-2xl rounded-br-md px-3 py-2 shadow-sm transition-all duration-300 ease-out"
-      sx={bubbleSx}
-    >
-      <Typography variant="body2" className="whitespace-pre-wrap break-words">
-        {text}
-      </Typography>
-      {timestamp && (
-        <Typography variant="caption" className={`mt-1 block opacity-70 ${timeClass}`}>
-          {timestamp}
+    <Box className="flex flex-col items-end max-w-[85%]">
+      {/* Chat Bubble */}
+      <Box
+        className="rounded-2xl rounded-br-md px-3 py-2 shadow-sm transition-all duration-300 ease-out"
+        sx={bubbleSx}
+      >
+        <Typography variant="body2" className="whitespace-pre-wrap break-words">
+          {text}
         </Typography>
+      </Box>
+
+      {/* Timestamp BELOW bubble */}
+      {timestamp && (
+      <Typography
+  variant="caption"
+  className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+  sx={{
+    fontSize: "11px",
+    fontWeight: 500,
+  }}
+>
+  {timestamp}
+</Typography>
       )}
     </Box>
   )
@@ -148,15 +163,27 @@ function AssistantTextBody({ text, timestamp }: AssistantTextBodyProps) {
   const { bubbleSx, timeClass } = useBubbleStyles(false)
 
   return (
-    <Box
-      className="max-w-[85%] rounded-2xl rounded-bl-md px-3 py-2 shadow-sm transition-all duration-300 ease-out"
-      sx={bubbleSx}
-    >
-      <Typography variant="body2" className="whitespace-pre-wrap break-words">
-        {text}
-      </Typography>
+    <Box className="flex flex-col items-start max-w-[85%]">
+      {/* Chat Bubble */}
+      <Box
+        className="rounded-2xl rounded-bl-md px-3 py-2 shadow-sm transition-all duration-300 ease-out"
+        sx={bubbleSx}
+      >
+        <Typography variant="body2" className="whitespace-pre-wrap break-words">
+          {text}
+        </Typography>
+      </Box>
+
+      {/* Timestamp BELOW bubble */}
       {timestamp && (
-        <Typography variant="caption" className={`mt-1 block opacity-70 ${timeClass}`}>
+         <Typography
+  variant="caption"
+  className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+  sx={{
+    fontSize: "11px",
+    fontWeight: 500,
+  }}
+>
           {timestamp}
         </Typography>
       )}
@@ -224,8 +251,9 @@ function ChoiceMessageBody({
   const showResolution = node.options.length === 0 && node.resolution
 
   return (
+    <Box className="flex flex-col items-start max-w-[95%]">
     <Box
-      className="max-w-[95%] rounded-2xl rounded-bl-md px-3 py-3 shadow-sm transition-all duration-300 ease-out"
+      className="rounded-2xl rounded-bl-md px-3 py-3 shadow-sm transition-all duration-300 ease-out"
       sx={bubbleSx}
     >
       {showResolution ? (
@@ -271,9 +299,15 @@ function ChoiceMessageBody({
           </Box>
         </>
       )}
-
+ </Box>
       {timestamp && (
-        <Typography variant="caption" className={`mt-2 block opacity-70 ${timeClass}`}>
+          <Typography
+  variant="caption"
+  className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+  sx={{
+    fontSize: "11px",
+    fontWeight: 500,
+  }}>
           {timestamp}
         </Typography>
       )}
@@ -304,14 +338,47 @@ function ChatMessage({ message, onChoiceSelect }: ChatMessageProps) {
   )
 
   return (
-    <Fade in timeout={280}>
-      <Box
-        className={`flex w-full mb-4 last:mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}
-      >
-        {inner}
-      </Box>
-    </Fade>
-  )
+  <Fade in timeout={280}>
+    <Box
+  className={`flex w-full mb-4 last:mb-2 items-start ${
+    isUser ? 'justify-end' : 'justify-start'
+  }`}
+>
+      {/* BOT ICON (LEFT SIDE) */}
+      {!isUser && (
+        <Avatar
+          sx={{
+            width: 32,
+            height: 32,
+            mr: 1,
+            bgcolor: "#e2e8f0",
+            color: "#334155",
+          }}
+        >
+          <SmartToyOutlinedIcon fontSize="small" />
+        </Avatar>
+      )}
+
+      {/* MESSAGE BODY */}
+      {inner}
+
+      {/* USER ICON (RIGHT SIDE) */}
+      {isUser && (
+        <Avatar
+          sx={{
+            width: 32,
+            height: 32,
+            ml: 1,
+            bgcolor: "#4f46e5",
+            color: "#fff",
+          }}
+        >
+          <PersonOutlineIcon fontSize="small" />
+        </Avatar>
+      )}
+    </Box>
+  </Fade>
+)
 }
 
 export default memo(ChatMessage)

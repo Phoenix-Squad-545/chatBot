@@ -17,7 +17,7 @@ export interface UserMenuItem {
 }
 
 export const navbarConfig: NavbarConfig = {
-  brandTitle: 'Expensy',
+  brandTitle: 'Expensify',
   actions: [
     {
       id: 'notifications',

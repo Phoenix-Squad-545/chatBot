@@ -132,14 +132,28 @@ function Navbar({ config, onMenuClick, sidebarOpen = false }: NavbarProps) {
           transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           slotProps={{ paper: { className: 'mt-1 min-w-48' } }}
         >
-          {config.userMenu?.map((item) => (
-            <Fragment key={item.id}>
-              {item.dividerBefore ? <Divider /> : null}
-              <MenuItem onClick={handleUserClose} dense className="text-sm">
-                {item.label}
-              </MenuItem>
-            </Fragment>
-          ))}
+        {config.userMenu?.flatMap((item) => {
+        const elements = []
+
+        if (item.dividerBefore) {
+          elements.push(
+            <Divider key={`${item.id}-divider`} />
+          )
+        }
+
+        elements.push(
+          <MenuItem
+            key={item.id}
+            onClick={handleUserClose}
+            dense
+            className="text-sm"
+          >
+            {item.label}
+          </MenuItem>
+        )
+
+        return elements
+      })}
         </Menu>
       </Toolbar>
     </AppBar>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Box, Toolbar, useTheme } from '@mui/material'
 import { Outlet } from 'react-router-dom'
 import Sidebar, { type SidebarItem } from './Sidebar'
@@ -6,6 +6,7 @@ import Navbar, { type NavbarConfig } from './Navbar'
 import ChatButton from '../components/chatbot/ChatButton'
 import ChatWindow from '../components/chatbot/ChatWindow'
 import { getQuestionById } from '../components/chatbot/FormData'
+import { getInitialMessages } from '../components/chatbot/ChatDefault'
 
 // Types for chat messages
 interface BaseMessage {
@@ -45,27 +46,20 @@ function Layout({ sidebarItems, navbarConfig }: LayoutProps) {
 
   const [chatOpen, setChatOpen] = useState<boolean>(false)
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    return [
-      {
-        id: 'welcome',
-        role: 'assistant',
-        chatVariant: 'default',
-        text: 'Hi — I am your in-app assistant. How can I help today?',
-        timestamp: time,
-      },
-      {
-        id: 'help-tree',
-        role: 'assistant',
-        chatVariant: 'choice',
-        questionId: 1,
-        optionsDisabled: false,
-        selectedOptionLabel: null,
-        timestamp: time,
-      },
-    ]
-  })
+const [isTyping, setIsTyping] = useState(false)
+const [messages, setMessages] = useState<ChatMessage[]>(
+  getInitialMessages()
+)
+
+useEffect(() => {
+  if (import.meta.hot) {
+    import.meta.hot.accept('../components/chatbot/ChatDefault', (mod:any) => {
+      if (chatOpen) {
+        setMessages(mod.getInitialMessages())
+      }
+    })
+  }
+}, [chatOpen])
 
   const handleDrawerToggle = useCallback(() => {
     setSidebarOpen((prev) => !prev)
@@ -130,29 +124,43 @@ function Layout({ sidebarItems, navbarConfig }: LayoutProps) {
     })
   }, [])
 
-  const handleSend = useCallback((text: string) => {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    const userMsg: DefaultMessage = {
-      id: `u-${Date.now()}`,
-      role: 'user',
-      chatVariant: 'default',
-      text,
-      timestamp: time,
-    }
-    setMessages((prev) => [...prev, userMsg])
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
-          role: 'assistant',
-          chatVariant: 'default',
-          text: `You said: "${text}". (Connect this panel to your backend when ready.)`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        } as DefaultMessage,
-      ])
-    }, 400)
-  }, [])
+ const handleSend = useCallback((text: string) => {
+  const time = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  const userMsg: DefaultMessage = {
+    id: `u-${Date.now()}`,
+    role: 'user',
+    chatVariant: 'default',
+    text,
+    timestamp: time,
+  }
+
+  setMessages((prev) => [...prev, userMsg])
+
+  // 🔥 SHOW TYPING
+  setIsTyping(true)
+
+  setTimeout(() => {
+    setIsTyping(false)
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `a-${Date.now()}`,
+        role: 'assistant',
+        chatVariant: 'default',
+        text: `You said: "${text}".`,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      },
+    ])
+  }, 1200) // simulate thinking delay
+}, [])
 
   return (
     <Box className="flex min-h-screen w-full max-w-full flex-col bg-slate-50 dark:bg-slate-950">
@@ -181,7 +189,12 @@ function Layout({ sidebarItems, navbarConfig }: LayoutProps) {
         </Box>
       </Box>
 
-      <ChatButton onClick={() => setChatOpen(true)} />
+      <ChatButton
+  onClick={() => {
+    setMessages(getInitialMessages())
+    setChatOpen(true)
+  }}
+/>
       <ChatWindow
         open={chatOpen}
         onClose={() => setChatOpen(false)}
@@ -189,6 +202,7 @@ function Layout({ sidebarItems, navbarConfig }: LayoutProps) {
         messages={messages}
         onSend={handleSend}
         onChoiceSelect={handleChoiceSelect}
+          isTyping={isTyping}
       />
     </Box>
   )
