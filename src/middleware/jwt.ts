@@ -12,7 +12,7 @@ export interface JwtPayload {
 
 export const generateAccessToken = (
   payload: JwtPayload,
-  expiresIn: any = "15m"
+  expiresIn: any = "15m",
 ): string => {
   const options: SignOptions = { expiresIn };
 
@@ -21,7 +21,7 @@ export const generateAccessToken = (
 
 export const generateRefreshToken = (
   payload: JwtPayload,
-  expiresIn: any = "7d"
+  expiresIn: any = "7d",
 ): string => {
   const options: SignOptions = { expiresIn };
 
