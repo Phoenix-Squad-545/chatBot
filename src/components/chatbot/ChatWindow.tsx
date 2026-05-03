@@ -311,7 +311,7 @@ const [confirmClose, setConfirmClose] = useState(false)
         variant="subtitle2"
         className="font-semibold truncate"
       >
-        Expense Assistant
+        AR HyperAutomation
       </Typography>
 
       <Typography
