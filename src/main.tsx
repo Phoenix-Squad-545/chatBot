@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom'
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import './index.css'
 import App from './App'
+import ReduxProvider from './redux/provider'
+import { Toaster } from 'react-hot-toast'
 
 /** MUI theme — Tailwind handles most layout; this aligns MUI components with a modern palette */
 const theme = createTheme({
@@ -23,7 +25,10 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
+       <ReduxProvider>
+    <Toaster position="top-right" reverseOrder={false} />
         <App />
+          </ReduxProvider>
       </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,

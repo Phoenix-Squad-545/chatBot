@@ -7,6 +7,7 @@ import ChatButton from '../components/chatbot/ChatButton'
 import ChatWindow from '../components/chatbot/ChatWindow'
 import { getQuestionById } from '../components/chatbot/FormData'
 import { getInitialMessages } from '../components/chatbot/ChatDefault'
+import { ChatAPI } from '../services/authService'
 
 // Types for chat messages
 interface BaseMessage {
@@ -124,7 +125,7 @@ useEffect(() => {
     })
   }, [])
 
- const handleSend = useCallback((text: string) => {
+const handleSend = useCallback(async (text: string) => {
   const time = new Date().toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
@@ -142,9 +143,45 @@ useEffect(() => {
 
   // 🔥 SHOW TYPING
   setIsTyping(true)
+    try {
 
-  setTimeout(() => {
-    setIsTyping(false)
+    //    const payload = {
+    //   message: [...messages, userMsg].map((m) => ({
+    //     role: m.role,
+    //     content:
+    //       m.chatVariant === 'default'
+    //         ? m.text
+    //         : m.selectedOptionLabel || '',
+    //   })),
+    // }
+
+    const payload = {
+  message: text, // or userMsg.text
+}
+
+ const response = await ChatAPI(payload);
+ console.log(response,"response>>>");
+ 
+      setTimeout(() => {
+        setIsTyping(false)
+    
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `a-${Date.now()}`,
+            role: 'assistant',
+            chatVariant: 'default',
+            // text: `You said: "${text}".`,
+            text: response.data, // assuming API returns { data: { "hi..." } }
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          },
+        ])
+      }, 1200) // simulate thinking delay
+    } catch (error) {
+       console.error('Chat API error:', error)
 
     setMessages((prev) => [
       ...prev,
@@ -152,15 +189,16 @@ useEffect(() => {
         id: `a-${Date.now()}`,
         role: 'assistant',
         chatVariant: 'default',
-        text: `You said: "${text}".`,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        text: '⚠️ Failed to connect to server',
+        timestamp: time,
       },
     ])
-  }, 1200) // simulate thinking delay
-}, [])
+  } finally {
+    setIsTyping(false)
+  }
+}, [messages])
+
+
 
   return (
     <Box className="flex min-h-screen w-full max-w-full flex-col bg-slate-50 dark:bg-slate-950">
