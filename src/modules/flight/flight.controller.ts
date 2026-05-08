@@ -88,11 +88,11 @@ export const getFlightDetailsByFilters = async (
       projectFields = { ...projectFields, payment: 1 };
     }
 
-    const newCategories = await FlightSchema.findOne(filter).lean();
+    const flights = await FlightSchema.find(filter).lean();
 
     res.status(SUCCESS_CODE).json({
       message: FLIGHT_LIST_GET_SUCCESS_MSG,
-      data: newCategories,
+      data: flights,
     });
   } catch (error: any) {
     console.log({ Error: error });
