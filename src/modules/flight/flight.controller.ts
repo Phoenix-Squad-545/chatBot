@@ -99,3 +99,12 @@ export const getFlightDetailsByFilters = async (
     throw new Error(error);
   }
 };
+
+export const getFlightsName = async (req: Request, res: Response) => {
+  const flights = await FlightSchema.find({}, { name: 1 }).lean();
+
+  res.status(SUCCESS_CODE).json({
+    message: FLIGHT_LIST_GET_SUCCESS_MSG,
+    data: flights,
+  });
+};
