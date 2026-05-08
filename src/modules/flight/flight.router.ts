@@ -8,6 +8,6 @@ const router = express.Router();
 
 router.post("/", createNewFlightCategory);
 
-router.get("/list", getFlightDetailsByFilters);
+router.post("/list-by-filter", getFlightDetailsByFilters);
 
 export default router;

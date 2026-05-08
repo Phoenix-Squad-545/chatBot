@@ -33,9 +33,62 @@ export const getFlightDetailsByFilters = async (
   res: Response,
 ) => {
   try {
-    const travelId = req.query?.travelId;
-    const filter = travelId ? { travelId } : {};
-    const newCategories = await FlightSchema.find(filter).lean();
+    const {
+      name,
+      travelId,
+      from,
+      to,
+      date,
+      price,
+      flightClass,
+      seat,
+      payment,
+    } = req.body;
+
+    // filter
+    const filter = {
+      ...(name && { name }),
+      ...(travelId && { travelId }),
+      ...(from && { from }),
+      ...(to && { to }),
+      ...(date && { date: new Date(date) }),
+      ...(price && { price }),
+      ...(flightClass && { flightClass }),
+      ...(seat && { seat }),
+      ...(payment && { payment }),
+    };
+
+    // project
+    let projectFields = {};
+    if (name) {
+      projectFields = { ...projectFields, name: 1 };
+    }
+    if (travelId) {
+      projectFields = { ...projectFields, travelId: 1 };
+    }
+    if (from) {
+      projectFields = { ...projectFields, from: 1 };
+    }
+    if (to) {
+      projectFields = { ...projectFields, to: 1 };
+    }
+    if (date) {
+      projectFields = { ...projectFields, date: 1 };
+    }
+    if (price) {
+      projectFields = { ...projectFields, price: 1 };
+    }
+    if (flightClass) {
+      projectFields = { ...projectFields, flightClass: 1 };
+    }
+    if (seat) {
+      projectFields = { ...projectFields, seat: 1 };
+    }
+    if (payment) {
+      projectFields = { ...projectFields, payment: 1 };
+    }
+
+    const newCategories = await FlightSchema.findOne(filter).lean();
 
     res.status(SUCCESS_CODE).json({
       message: FLIGHT_LIST_GET_SUCCESS_MSG,
