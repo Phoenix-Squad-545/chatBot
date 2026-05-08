@@ -6,11 +6,15 @@ import { APP_BASE_RUN_MSG } from "./constants/message";
 import { APP_PORT } from "./constants/envKeys";
 import { API_ROUTE } from "./constants/routeName";
 import routes from "./routes";
+import { mongoDBConnection } from "./config/db";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(`/${API_ROUTE}`, routes);
+
+// db connect
+mongoDBConnection();
 
 app.get("/", (req: Request, res: Response) => {
   res.send(APP_BASE_RUN_MSG);
