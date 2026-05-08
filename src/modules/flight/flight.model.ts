@@ -35,7 +35,7 @@ const flightSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    class: {
+    flightClass: {
       type: String,
       required: true,
     },
