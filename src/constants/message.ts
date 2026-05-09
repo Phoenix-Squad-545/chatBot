@@ -14,3 +14,6 @@ export const FLIGHT_LIST_GET_SUCCESS_MSG = "Flight List Retrieved Successfully";
 export const HOTEL_CREATE_FAILED_MSG = "New Hotel Creation Failed";
 export const HOTEL_CREATE_SUCCESS_MSG = "New Hotel Created Successfully";
 export const HOTEL_LIST_GET_SUCCESS_MSG = "Hotel List Retrieved Successfully";
+export const CAR_CREATE_FAILED_MSG = "New Car Creation Failed";
+export const CAR_CREATE_SUCCESS_MSG = "New Car Created Successfully";
+export const CAR_LIST_GET_SUCCESS_MSG = "Car List Retrieved Successfully";
