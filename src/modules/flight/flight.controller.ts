@@ -58,36 +58,6 @@ export const getFlightDetailsByFilters = async (
       ...(payment && { payment }),
     };
 
-    // project
-    let projectFields = {};
-    if (name) {
-      projectFields = { ...projectFields, name: 1 };
-    }
-    if (travelId) {
-      projectFields = { ...projectFields, travelId: 1 };
-    }
-    if (from) {
-      projectFields = { ...projectFields, from: 1 };
-    }
-    if (to) {
-      projectFields = { ...projectFields, to: 1 };
-    }
-    if (date) {
-      projectFields = { ...projectFields, date: 1 };
-    }
-    if (price) {
-      projectFields = { ...projectFields, price: 1 };
-    }
-    if (flightClass) {
-      projectFields = { ...projectFields, flightClass: 1 };
-    }
-    if (seat) {
-      projectFields = { ...projectFields, seat: 1 };
-    }
-    if (payment) {
-      projectFields = { ...projectFields, payment: 1 };
-    }
-
     const flights = await FlightSchema.find(filter).lean();
 
     res.status(SUCCESS_CODE).json({
