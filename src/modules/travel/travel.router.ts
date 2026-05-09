@@ -8,6 +8,6 @@ const router = express.Router();
 
 router.post("/", createNewTravelCategory);
 
-router.get("/list", getTravelCategories);
+router.post("/list", getTravelCategories);
 
 export default router;
