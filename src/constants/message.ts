@@ -17,3 +17,5 @@ export const HOTEL_LIST_GET_SUCCESS_MSG = "Hotel List Retrieved Successfully";
 export const CAR_CREATE_FAILED_MSG = "New Car Creation Failed";
 export const CAR_CREATE_SUCCESS_MSG = "New Car Created Successfully";
 export const CAR_LIST_GET_SUCCESS_MSG = "Car List Retrieved Successfully";
+export const USER_CREATE_FAILED_MSG = "New User Creation Failed";
+export const USER_CATEGORY_CREATE_SUCCESS_MSG = "New User Created Successfully";
