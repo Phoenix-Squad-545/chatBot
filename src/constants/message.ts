@@ -11,3 +11,6 @@ export const TRAVEL_CATEGORY_CREATE_SUCCESS_MSG =
 export const FLIGHT_CREATE_FAILED_MSG = "New Flight Creation Failed";
 export const FLIGHT_CREATE_SUCCESS_MSG = "New Flight Created Successfully";
 export const FLIGHT_LIST_GET_SUCCESS_MSG = "Flight List Retrieved Successfully";
+export const HOTEL_CREATE_FAILED_MSG = "New Hotel Creation Failed";
+export const HOTEL_CREATE_SUCCESS_MSG = "New Hotel Created Successfully";
+export const HOTEL_LIST_GET_SUCCESS_MSG = "Hotel List Retrieved Successfully";

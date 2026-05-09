@@ -9,6 +9,10 @@ const travelSchema = new mongoose.Schema(
       required: true,
       enum: [FLIGHT, HOTEL, CAR, OTHERS],
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

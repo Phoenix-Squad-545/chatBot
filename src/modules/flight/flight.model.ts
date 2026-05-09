@@ -8,6 +8,7 @@ import {
   UPI_PAYMENT,
   WALLET_PAYMENT,
 } from "../../constants/appKeys";
+const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const flightSchema = new mongoose.Schema(
   {
@@ -17,7 +18,7 @@ const flightSchema = new mongoose.Schema(
       unique: true,
     },
     travelId: {
-      type: String,
+      type: ObjectId,
       required: true,
     },
     from: {
@@ -66,6 +67,10 @@ const flightSchema = new mongoose.Schema(
       type: String,
       default: CARD_PAYMENT,
       enum: [CARD_PAYMENT, UPI_PAYMENT, WALLET_PAYMENT],
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },
