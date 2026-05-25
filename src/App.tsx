@@ -15,21 +15,31 @@ import LoginPage3 from './pages/Login/LoginPage3'
  */
 function App() {
   return (
-   <Routes>
-  {/* Public */}
-  {/* <Route path="/" element={<LoginPage1 />} /> */}
-  <Route path="/" element={<Dashboard />} />
-  <Route path="/login" element={<LoginPage />} />
+//    <Routes>
+//   {/* Public */}
+//   <Route path="/" element={<LoginPage1 />} />
+//   <Route path="/login" element={<LoginPage />} />
 
-  {/* Private */}
-  <Route element={<Layout sidebarItems={sidebarItems} navbarConfig={navbarConfig} />}>
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/settings" element={<Settings />} />
-    <Route path="/chatbot" element={<ChatbotPage />} />
-  </Route>
+//   {/* Private */}
+//   <Route element={<Layout sidebarItems={sidebarItems} navbarConfig={navbarConfig} />}>
+//     <Route path="/dashboard" element={<Dashboard />} />
+//     <Route path="/settings" element={<Settings />} />
+//     <Route path="/chatbot" element={<ChatbotPage />} />
+//   </Route>
 
-  <Route path="*" element={<Navigate to="/login" replace />} />
-</Routes>
+//   <Route path="*" element={<Navigate to="/login" replace />} />
+// </Routes>
+
+<Routes>
+      <Route
+        element={<Layout sidebarItems={sidebarItems} navbarConfig={navbarConfig} />}
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="chatbot" element={<ChatbotPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
   )
 }
 
