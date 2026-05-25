@@ -1,0 +1,13 @@
+export const GPT_TYPE = "gpt-4o-mini";
+export const SYSTEM = "system";
+export const USER = "user";
+export const FLIGHT = "Flight";
+export const HOTEL = "Hotel";
+export const CAR = "Car";
+export const OTHERS = "Others";
+export const CARD_PAYMENT = "Card";
+export const UPI_PAYMENT = "UPI";
+export const WALLET_PAYMENT = "Wallet";
+export const PENDING = "pending";
+export const SUCCESS = "success";
+export const FAILED = "failed";
