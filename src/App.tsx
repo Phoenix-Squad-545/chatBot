@@ -34,6 +34,7 @@ function App() {
       <Route
         element={<Layout sidebarItems={sidebarItems} navbarConfig={navbarConfig} />}
       >
+        <Route path="/" element={<Dashboard />} />
         <Route index element={<Dashboard />} />
         <Route path="settings" element={<Settings />} />
         <Route path="chatbot" element={<ChatbotPage />} />
