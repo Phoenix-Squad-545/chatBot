@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react'
 import { alpha } from '@mui/material/styles'
-import { Box, Button, Fade, Typography } from '@mui/material'
+import { Box, Button, Fade, Typography, TextField } from '@mui/material'
 import { getQuestionById } from './FormData'
 import { useChatbotThemeOptional } from './UseChatBotTheme'
 import { CHAT_DEFAULT_PRIMARY } from './ChatThemePresets'
@@ -27,7 +27,36 @@ export interface ChoiceMessage extends BaseMessage {
   selectedOptionLabel: string | null
 }
 
-export type ChatMessageType = DefaultMessage | ChoiceMessage
+// Dynamic message types
+export interface DynamicChoiceMessage extends BaseMessage {
+  chatVariant: 'dynamic_choice'
+  question: string
+  options: Array<{ label: string; value: any; nextStep?: string }>
+  stepId: string
+  field?: string
+}
+
+export interface DynamicFormMessage extends BaseMessage {
+  chatVariant: 'dynamic_form'
+  question: string
+  field: string
+  stepId: string
+  validation?: (value: string) => boolean
+}
+
+export interface DynamicConfirmationMessage extends BaseMessage {
+  chatVariant: 'dynamic_confirmation'
+  question: string
+  stepId: string
+}
+
+// Union type for all message types
+export type ChatMessageType = 
+  | DefaultMessage 
+  | ChoiceMessage 
+  | DynamicChoiceMessage 
+  | DynamicFormMessage 
+  | DynamicConfirmationMessage
 
 interface BubbleStyles {
   bubbleSx: Record<string, any>
@@ -53,9 +82,27 @@ interface ChoiceMessageBodyProps {
   onChoiceSelect?: (messageId: string, choice: { label: string; nextQuestionId: number | null }) => void
 }
 
+interface DynamicChoiceMessageBodyProps {
+  message: DynamicChoiceMessage
+  onDynamicChoice?: (stepId: string, choice: any, nextStep?: string) => void
+}
+
+interface DynamicFormMessageBodyProps {
+  message: DynamicFormMessage
+  formValue: string
+  formError: string
+  onFormValueChange: (value: string) => void
+  onFormSubmit: (stepId: string, field: string, value: string, validation?: (val: string) => boolean) => void
+}
+
 interface ChatMessageProps {
   message: ChatMessageType
   onChoiceSelect?: (messageId: string, choice: { label: string; nextQuestionId: number | null }) => void
+  onDynamicChoice?: (stepId: string, choice: any, nextStep?: string) => void
+  onDynamicFormSubmit?: (stepId: string, field: string, value: string, validation?: (val: string) => boolean) => void
+  formValue?: string
+  formError?: string
+  onFormValueChange?: (value: string) => void
 }
 
 interface Option {
@@ -129,6 +176,7 @@ function useBubbleStyles(isUser: boolean): BubbleStyles {
 
 function DefaultMessageBody({ text, timestamp }: DefaultMessageBodyProps) {
   const { bubbleSx, timeClass } = useBubbleStyles(true)
+console.log(text,"texttext>>>");
 
   return (
     <Box className="flex flex-col items-end max-w-[85%]">
@@ -144,16 +192,13 @@ function DefaultMessageBody({ text, timestamp }: DefaultMessageBodyProps) {
 
       {/* Timestamp BELOW bubble */}
       {timestamp && (
-      <Typography
-  variant="caption"
-  className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
-  sx={{
-    fontSize: "11px",
-    fontWeight: 500,
-  }}
->
-  {timestamp}
-</Typography>
+        <Typography
+          variant="caption"
+          className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+          sx={{ fontSize: "11px", fontWeight: 500 }}
+        >
+          {timestamp}
+        </Typography>
       )}
     </Box>
   )
@@ -176,14 +221,11 @@ function AssistantTextBody({ text, timestamp }: AssistantTextBodyProps) {
 
       {/* Timestamp BELOW bubble */}
       {timestamp && (
-         <Typography
-  variant="caption"
-  className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
-  sx={{
-    fontSize: "11px",
-    fontWeight: 500,
-  }}
->
+        <Typography
+          variant="caption"
+          className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+          sx={{ fontSize: "11px", fontWeight: 500 }}
+        >
           {timestamp}
         </Typography>
       )}
@@ -191,10 +233,6 @@ function AssistantTextBody({ text, timestamp }: AssistantTextBodyProps) {
   )
 }
 
-/**
- * Assistant turn with options: parent appends history; here we only render + fire `onChoiceSelect`.
- * After selection, parent sets optionsDisabled and selectedOptionLabel on this message id.
- */
 function ChoiceMessageBody({
   messageId,
   questionId,
@@ -252,62 +290,60 @@ function ChoiceMessageBody({
 
   return (
     <Box className="flex flex-col items-start max-w-[95%]">
-    <Box
-      className="rounded-2xl rounded-bl-md px-3 py-3 shadow-sm transition-all duration-300 ease-out"
-      sx={bubbleSx}
-    >
-      {showResolution ? (
-        <Typography variant="body2" className="whitespace-pre-wrap break-words">
-          {node.resolution}
-        </Typography>
-      ) : (
-        <>
-          {node.question ? (
-            <Typography variant="body2" className="mb-3 font-medium whitespace-pre-wrap break-words">
-              {node.question}
-            </Typography>
-          ) : null}
+      <Box
+        className="rounded-2xl rounded-bl-md px-3 py-3 shadow-sm transition-all duration-300 ease-out"
+        sx={bubbleSx}
+      >
+        {showResolution ? (
+          <Typography variant="body2" className="whitespace-pre-wrap break-words">
+            {node.resolution}
+          </Typography>
+        ) : (
+          <>
+            {node.question ? (
+              <Typography variant="body2" className="mb-3 font-medium whitespace-pre-wrap break-words">
+                {node.question}
+              </Typography>
+            ) : null}
 
-          <Box className="flex flex-col gap-2">
-            {node.options.map((opt: Option) => {
-              const isSelected = selectedOptionLabel === opt.label
-              const locked = optionsDisabled
-              return (
-                <Button
-                  key={`${node.id}-${opt.label}`}
-                  variant={isSelected ? 'contained' : 'outlined'}
-                  size="small"
-                  disabled={locked}
-                  onClick={() =>
-                    onChoiceSelect?.(messageId, {
-                      label: opt.label,
-                      nextQuestionId: opt.nextQuestionId,
-                    })
-                  }
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    textTransform: 'none',
-                    borderRadius: 3,
-                    ...(isSelected ? selectedSx : accentSx),
-                  }}
-                >
-                  {opt.label}
-                </Button>
-              )
-            })}
-          </Box>
-        </>
-      )}
- </Box>
+            <Box className="flex flex-col gap-2">
+              {node.options.map((opt: Option) => {
+                const isSelected = selectedOptionLabel === opt.label
+                const locked = optionsDisabled
+                return (
+                  <Button
+                    key={`${node.id}-${opt.label}`}
+                    variant={isSelected ? 'contained' : 'outlined'}
+                    size="small"
+                    disabled={locked}
+                    onClick={() =>
+                      onChoiceSelect?.(messageId, {
+                        label: opt.label,
+                        nextQuestionId: opt.nextQuestionId,
+                      })
+                    }
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textAlign: 'left',
+                      textTransform: 'none',
+                      borderRadius: 3,
+                      ...(isSelected ? selectedSx : accentSx),
+                    }}
+                  >
+                    {opt.label}
+                  </Button>
+                )
+              })}
+            </Box>
+          </>
+        )}
+      </Box>
       {timestamp && (
-          <Typography
-  variant="caption"
-  className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
-  sx={{
-    fontSize: "11px",
-    fontWeight: 500,
-  }}>
+        <Typography
+          variant="caption"
+          className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+          sx={{ fontSize: "11px", fontWeight: 500 }}
+        >
           {timestamp}
         </Typography>
       )}
@@ -315,70 +351,243 @@ function ChoiceMessageBody({
   )
 }
 
+function DynamicChoiceMessageBody({ message, onDynamicChoice }: DynamicChoiceMessageBodyProps) {
+  const { bubbleSx, timeClass } = useBubbleStyles(false)
+
+  return (
+    <Box className="flex flex-col items-start max-w-[95%] mb-4">
+      <Box
+        className="rounded-2xl rounded-bl-md px-3 py-3 shadow-sm transition-all duration-300 ease-out"
+        sx={bubbleSx}
+      >
+        <Typography variant="body2" className="mb-3 font-medium whitespace-pre-wrap break-words">
+          {message.question}
+        </Typography>
+        <Box className="flex flex-col gap-2">
+          {message.options.map((opt, idx) => (
+            <Button
+              key={idx}
+              variant="outlined"
+              size="small"
+              onClick={() => onDynamicChoice?.(message.stepId, opt, opt.nextStep)}
+              sx={{ justifyContent: 'flex-start', textTransform: 'none', borderRadius: 3 }}
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </Box>
+      </Box>
+      {message.timestamp && (
+        <Typography
+          variant="caption"
+          className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+          sx={{ fontSize: "11px", fontWeight: 500 }}
+        >
+          {message.timestamp}
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
+function DynamicFormMessageBody({ message, formValue, formError, onFormValueChange, onFormSubmit }: DynamicFormMessageBodyProps) {
+  const { bubbleSx, timeClass } = useBubbleStyles(false)
+
+  return (
+    <Box className="flex flex-col items-start max-w-[95%] mb-4">
+      <Box
+        className="rounded-2xl rounded-bl-md px-3 py-3 shadow-sm transition-all duration-300 ease-out"
+        sx={bubbleSx}
+      >
+        <Typography variant="body2" className="mb-2 whitespace-pre-wrap break-words">
+          {message.question}
+        </Typography>
+        <TextField
+          fullWidth
+          size="small"
+          value={formValue}
+          onChange={(e) => onFormValueChange(e.target.value)}
+          error={!!formError}
+          helperText={formError}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              onFormSubmit(message.stepId, message.field, formValue, message.validation)
+            }
+          }}
+          sx={{ mb: 1 }}
+        />
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => onFormSubmit(message.stepId, message.field, formValue, message.validation)}
+        >
+          Submit
+        </Button>
+      </Box>
+      {message.timestamp && (
+        <Typography
+          variant="caption"
+          className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+          sx={{ fontSize: "11px", fontWeight: 500 }}
+        >
+          {message.timestamp}
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
+function DynamicConfirmationMessageBody({ message }: { message: DynamicConfirmationMessage }) {
+  const { bubbleSx, timeClass } = useBubbleStyles(false)
+
+  return (
+    <Box className="flex flex-col items-start max-w-[95%] mb-4">
+      <Box
+        className="rounded-2xl rounded-bl-md px-3 py-3 shadow-sm transition-all duration-300 ease-out"
+        sx={bubbleSx}
+      >
+        <Typography variant="body2" className="whitespace-pre-wrap break-words">
+          {message.question}
+        </Typography>
+      </Box>
+      {message.timestamp && (
+        <Typography
+          variant="caption"
+          className={`mt-2 text-right text-slate-600 dark:text-slate-400 ${timeClass}`}
+          sx={{ fontSize: "11px", fontWeight: 500 }}
+        >
+          {message.timestamp}
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
 /**
- * Single transcript row. `message` matches Layout chat history items.
+ * Single transcript row. Handles all message types.
  */
-function ChatMessage({ message, onChoiceSelect }: ChatMessageProps) {
+function ChatMessage({ 
+  message, 
+  onChoiceSelect, 
+  onDynamicChoice, 
+  onDynamicFormSubmit,
+  formValue = '',
+  formError = '',
+  onFormValueChange 
+}: ChatMessageProps) {
   const isUser = message.role === 'user'
   const chatVariant = message.chatVariant ?? 'default'
 
-  const inner = isUser ? (
-    <DefaultMessageBody text={(message as DefaultMessage).text} timestamp={message.timestamp} />
-  ) : chatVariant === 'choice' ? (
-    <ChoiceMessageBody
-      messageId={message.id}
-      questionId={(message as ChoiceMessage).questionId ?? 1}
-      optionsDisabled={Boolean((message as ChoiceMessage).optionsDisabled)}
-      selectedOptionLabel={(message as ChoiceMessage).selectedOptionLabel ?? null}
-      timestamp={message.timestamp}
-      onChoiceSelect={onChoiceSelect}
-    />
-  ) : (
-    <AssistantTextBody text={(message as DefaultMessage).text} timestamp={message.timestamp} />
-  )
+  // User message (always default type)
+  if (isUser && chatVariant === 'default') {
+    const userMessage = message as DefaultMessage
+    console.log(userMessage,"userMessage>>>");
+    
+    return (
+      <Fade in timeout={280}>
+        <Box className="flex w-full mb-4 last:mb-2 items-start justify-end">
+          <DefaultMessageBody text={userMessage.text} timestamp={userMessage.timestamp} />
+          <Avatar sx={{ width: 32, height: 32, ml: 1, bgcolor: "#4f46e5", color: "#fff" }}>
+            <PersonOutlineIcon fontSize="small" />
+          </Avatar>
+        </Box>
+      </Fade>
+    )
+  }
 
-  return (
-  <Fade in timeout={280}>
-    <Box
-  className={`flex w-full mb-4 last:mb-2 items-start ${
-    isUser ? 'justify-end' : 'justify-start'
-  }`}
->
-      {/* BOT ICON (LEFT SIDE) */}
-      {!isUser && (
-        <Avatar
-          sx={{
-            width: 32,
-            height: 32,
-            mr: 1,
-            bgcolor: "#e2e8f0",
-            color: "#334155",
-          }}
-        >
-          <SmartToyOutlinedIcon fontSize="small" />
-        </Avatar>
-      )}
+  // Assistant message with static choices
+  if (!isUser && chatVariant === 'choice') {
+    const choiceMessage = message as ChoiceMessage
+    return (
+      <Fade in timeout={280}>
+        <Box className="flex w-full mb-4 last:mb-2 items-start justify-start">
+          <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: "#e2e8f0", color: "#334155" }}>
+            <SmartToyOutlinedIcon fontSize="small" />
+          </Avatar>
+          <ChoiceMessageBody
+            messageId={choiceMessage.id}
+            questionId={choiceMessage.questionId}
+            optionsDisabled={choiceMessage.optionsDisabled}
+            selectedOptionLabel={choiceMessage.selectedOptionLabel}
+            timestamp={choiceMessage.timestamp}
+            onChoiceSelect={onChoiceSelect}
+          />
+        </Box>
+      </Fade>
+    )
+  }
 
-      {/* MESSAGE BODY */}
-      {inner}
+  // Assistant message with dynamic choices (from API)
+  if (!isUser && chatVariant === 'dynamic_choice') {
+    const dynamicMessage = message as DynamicChoiceMessage
+    return (
+      <Fade in timeout={280}>
+        <Box className="flex w-full mb-4 last:mb-2 items-start justify-start">
+          <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: "#e2e8f0", color: "#334155" }}>
+            <SmartToyOutlinedIcon fontSize="small" />
+          </Avatar>
+          <DynamicChoiceMessageBody 
+            message={dynamicMessage} 
+            onDynamicChoice={onDynamicChoice} 
+          />
+        </Box>
+      </Fade>
+    )
+  }
 
-      {/* USER ICON (RIGHT SIDE) */}
-      {isUser && (
-        <Avatar
-          sx={{
-            width: 32,
-            height: 32,
-            ml: 1,
-            bgcolor: "#4f46e5",
-            color: "#fff",
-          }}
-        >
-          <PersonOutlineIcon fontSize="small" />
-        </Avatar>
-      )}
-    </Box>
-  </Fade>
-)
+  // Assistant message with form input
+  if (!isUser && chatVariant === 'dynamic_form') {
+    const formMessage = message as DynamicFormMessage
+    return (
+      <Fade in timeout={280}>
+        <Box className="flex w-full mb-4 last:mb-2 items-start justify-start">
+          <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: "#e2e8f0", color: "#334155" }}>
+            <SmartToyOutlinedIcon fontSize="small" />
+          </Avatar>
+          <DynamicFormMessageBody
+            message={formMessage}
+            formValue={formValue}
+            formError={formError}
+            onFormValueChange={onFormValueChange || (() => {})}
+            onFormSubmit={onDynamicFormSubmit || (() => {})}
+          />
+        </Box>
+      </Fade>
+    )
+  }
+
+  // Assistant message with confirmation
+  if (!isUser && chatVariant === 'dynamic_confirmation') {
+    const confirmationMessage = message as DynamicConfirmationMessage
+    return (
+      <Fade in timeout={280}>
+        <Box className="flex w-full mb-4 last:mb-2 items-start justify-start">
+          <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: "#e2e8f0", color: "#334155" }}>
+            <SmartToyOutlinedIcon fontSize="small" />
+          </Avatar>
+          <DynamicConfirmationMessageBody message={confirmationMessage} />
+        </Box>
+      </Fade>
+    )
+  }
+
+  // Default assistant text message
+  if (!isUser && chatVariant === 'default') {
+    const assistantMessage = message as DefaultMessage
+    return (
+      <Fade in timeout={280}>
+        <Box className="flex w-full mb-4 last:mb-2 items-start justify-start">
+          <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: "#e2e8f0", color: "#334155" }}>
+            <SmartToyOutlinedIcon fontSize="small" />
+          </Avatar>
+          <AssistantTextBody text={assistantMessage.text} timestamp={assistantMessage.timestamp} />
+        </Box>
+      </Fade>
+    )
+  }
+
+  // Fallback
+  return null
 }
 
 export default memo(ChatMessage)
