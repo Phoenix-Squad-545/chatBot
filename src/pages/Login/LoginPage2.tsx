@@ -23,11 +23,9 @@ interface FloatingParticle {
 const FEATURES = [
     { icon: "✦", label: "AI-Powered Scanning", desc: "SmartScan receipts instantly" },
     { icon: "◈", label: "Global Reimbursements", desc: "Pay in 190+ currencies" },
-    { icon: "⬡", label: "Corporate Cards", desc: "AR HyperAutomation Visa® with cashback" },
+    { icon: "⬡", label: "Corporate Cards", desc: "Expensify Visa® with cashback" },
     { icon: "◉", label: "45+ Integrations", desc: "QuickBooks, NetSuite & more" },
 ];
-
-const TRUST_LOGOS = ["GitHub", "Pinterest", "Swatch", "Warby Parker", "Xero", "Tribeca"];
 
 export default function ExpensifyLogin() {
     const navigate = useNavigate();
@@ -41,7 +39,14 @@ export default function ExpensifyLogin() {
     const [mounted, setMounted] = useState(false);
     const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState(""); 
+    const [confirmPassword, setConfirmPassword] = useState("");
+    
+    // Registration form state
+    const [registerName, setRegisterName] = useState("");
+    const [registerEmail, setRegisterEmail] = useState("");
+    const [registerPassword, setRegisterPassword] = useState("");
+    const [acceptTerms, setAcceptTerms] = useState(false);
+    
     const [particles] = useState<FloatingParticle[]>(() =>
         Array.from({ length: 18 }, (_, i) => ({
             id: i,
@@ -53,12 +58,6 @@ export default function ExpensifyLogin() {
         }))
     );
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    
-    // Registration form state
-    const [registerName, setRegisterName] = useState("");
-    const [registerEmail, setRegisterEmail] = useState("");
-    const [registerPassword, setRegisterPassword] = useState("");
-    const [acceptTerms, setAcceptTerms] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -68,7 +67,6 @@ export default function ExpensifyLogin() {
         return () => clearInterval(interval);
     }, []);
 
-    // Animated grid lines on canvas
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -95,7 +93,7 @@ export default function ExpensifyLogin() {
                 const x = c * cellW;
                 const alpha = 0.03 + 0.02 * Math.sin(frame * 0.01 + c * 0.4);
                 ctx.beginPath();
-                ctx.strokeStyle = `rgba(16,185,129,${alpha})`;
+                ctx.strokeStyle = `rgba(79,70,229,${alpha})`;
                 ctx.lineWidth = 0.5;
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, canvas.height);
@@ -105,20 +103,19 @@ export default function ExpensifyLogin() {
                 const y = r * cellH;
                 const alpha = 0.03 + 0.02 * Math.sin(frame * 0.012 + r * 0.5);
                 ctx.beginPath();
-                ctx.strokeStyle = `rgba(16,185,129,${alpha})`;
+                ctx.strokeStyle = `rgba(79,70,229,${alpha})`;
                 ctx.lineWidth = 0.5;
                 ctx.moveTo(0, y);
                 ctx.lineTo(canvas.width, y);
                 ctx.stroke();
             }
 
-            // Floating dots
             particles.forEach((p) => {
                 const nx = (p.x / 100) * canvas.width;
                 const ny = ((p.y + (frame / p.speed)) % 100) / 100 * canvas.height;
                 ctx.beginPath();
                 ctx.arc(nx, ny, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(16,185,129,${p.opacity * (0.7 + 0.3 * Math.sin(frame * 0.02 + p.id))})`;
+                ctx.fillStyle = `rgba(79,70,229,${p.opacity * (0.7 + 0.3 * Math.sin(frame * 0.02 + p.id))})`;
                 ctx.fill();
             });
 
@@ -141,10 +138,7 @@ export default function ExpensifyLogin() {
     const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-
         await new Promise((r) => setTimeout(r, 1000));
-
-        // ✅ Hardcoded auth
         if (email === "admin@gmail.com" && password === "admin@123") {
             setLoading(false);
             localStorage.setItem("isAuth", "true");
@@ -200,16 +194,16 @@ export default function ExpensifyLogin() {
 
         try {
             // Replace this URL with your actual API endpoint
-         const response = await loginService(payload);
+          const response = await loginService(payload);
 
             if (response) {
                 // Registration successful
                 alert("Registration successful! Please login.");
                 
-                // Optionally auto-fill email for login
+                // Auto-fill email for login
                 setEmail(registerEmail);
                 setStep("email");
-                navigate("/dashboard");
+                
                 // Clear registration form
                 setRegisterName("");
                 setRegisterEmail("");
@@ -217,7 +211,7 @@ export default function ExpensifyLogin() {
                 setAcceptTerms(false);
             } else {
                 // Handle API errors
-                alert( "Registration failed. Please try again.");
+                alert(response.message || "Registration failed. Please try again.");
             }
         } catch (error) {
             console.error("Registration error:", error);
@@ -227,18 +221,59 @@ export default function ExpensifyLogin() {
         }
     };
 
+    // Reusable input style helpers
+    const inputBase = {
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.09)",
+    };
+    const inputFocus = {
+        border: "1px solid rgba(79,70,229,0.55)",
+        background: "rgba(79,70,229,0.06)",
+    };
+
+    const PrimaryButton = ({
+        children,
+        onClick,
+        type = "button",
+        disabled = false,
+    }: {
+        children: React.ReactNode;
+        onClick?: () => void;
+        type?: "button" | "submit";
+        disabled?: boolean;
+    }) => (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+            style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
+        >
+            {children}
+        </button>
+    );
+
+    const Spinner = () => (
+        <>
+            <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
+                <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+        </>
+    );
+
     return (
-        <div className="min-h-screen flex bg-[#0a0d0b] font-sans overflow-hidden">
+        <div className="min-h-screen flex bg-[#07070f] font-sans overflow-hidden">
+
             {/* ── Left Panel ── */}
             <div className="hidden lg:flex flex-col w-[52%] relative overflow-hidden">
                 <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-                {/* Radial glow */}
                 <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                        background: 
-                            "radial-gradient(ellipse 70% 60% at 30% 50%, rgba(16,185,129,0.08) 0%, transparent 70%)",
+                        background:
+                            "radial-gradient(ellipse 70% 60% at 30% 50%, rgba(79,70,229,0.1) 0%, transparent 70%)",
                     }}
                 />
 
@@ -247,11 +282,11 @@ export default function ExpensifyLogin() {
                     <div className="flex items-center gap-3 mb-16">
                         <div
                             className="w-8 h-8 rounded-lg flex items-center justify-center"
-                            style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+                            style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
                         >
                             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
-            </svg>
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+                            </svg>
                         </div>
                         <span className="text-white text-xl font-semibold tracking-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
                             AR HyperAutomation
@@ -263,7 +298,11 @@ export default function ExpensifyLogin() {
                         <div className="mb-3">
                             <span
                                 className="text-xs font-medium tracking-[0.2em] uppercase px-3 py-1 rounded-full border"
-                                style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.08)" }}
+                                style={{
+                                    color: "#818cf8",
+                                    borderColor: "rgba(79,70,229,0.35)",
+                                    background: "rgba(79,70,229,0.1)",
+                                }}
                             >
                                 15 million+ members
                             </span>
@@ -274,11 +313,11 @@ export default function ExpensifyLogin() {
                             style={{ fontFamily: "'Sora', sans-serif", letterSpacing: "-0.03em" }}
                         >
                             The smartest<br />
-                            <span style={{ color: "#10b981" }}>way to manage</span><br />
+                            <span style={{ color: "#818cf8" }}>way to manage</span><br />
                             expenses.
                         </h1>
 
-                        <p className="text-[#6b7c74] text-lg leading-relaxed mb-12 max-w-sm">
+                        <p className="text-[#4a4470] text-lg leading-relaxed mb-12 max-w-sm">
                             AI-powered expense reports, corporate cards, travel booking, and global reimbursements — all in one place.
                         </p>
 
@@ -289,16 +328,16 @@ export default function ExpensifyLogin() {
                                     key={f.label}
                                     className="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-500"
                                     style={{
-                                        background: i === activeFeature ? "rgba(16,185,129,0.08)" : "transparent",
-                                        border: i === activeFeature ? "1px solid rgba(16,185,129,0.2)" : "1px solid transparent",
+                                        background: i === activeFeature ? "rgba(79,70,229,0.1)" : "transparent",
+                                        border: i === activeFeature ? "1px solid rgba(79,70,229,0.25)" : "1px solid transparent",
                                         transform: i === activeFeature ? "translateX(4px)" : "none",
                                     }}
                                 >
                                     <span
                                         className="text-lg w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
                                         style={{
-                                            color: i === activeFeature ? "#10b981" : "#3d4f47",
-                                            background: i === activeFeature ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.03)",
+                                            color: i === activeFeature ? "#818cf8" : "#2a2545",
+                                            background: i === activeFeature ? "rgba(79,70,229,0.15)" : "rgba(255,255,255,0.03)",
                                         }}
                                     >
                                         {f.icon}
@@ -306,13 +345,13 @@ export default function ExpensifyLogin() {
                                     <div>
                                         <p
                                             className="text-sm font-medium transition-colors duration-300"
-                                            style={{ color: i === activeFeature ? "#fff" : "#4a5c54" }}
+                                            style={{ color: i === activeFeature ? "#fff" : "#332e5c" }}
                                         >
                                             {f.label}
                                         </p>
                                         <p
                                             className="text-xs transition-colors duration-300"
-                                            style={{ color: i === activeFeature ? "#6b7c74" : "#2e3c36" }}
+                                            style={{ color: i === activeFeature ? "#4a4470" : "#1e1a38" }}
                                         >
                                             {f.desc}
                                         </p>
@@ -321,15 +360,15 @@ export default function ExpensifyLogin() {
                             ))}
                         </div>
 
-                        {/* Trust logos */}
-                        <div>
-                            <p className="text-xs text-[#3d4f47] uppercase tracking-widest mb-3">Trusted by teams at</p>
-                        </div>
+                        {/* Trust avatars */}
                         <div className="flex items-center gap-3">
                             <div className="flex -space-x-2">
-                                {["4f46e5", "7c3aed", "3b82f6", "10b981"].map((c, i) => (
-                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0f0c29] flex items-center justify-center text-xs text-white font-bold"
-                                        style={{ backgroundColor: `#${c}` }}>
+                                {["4f46e5", "7c3aed", "6366f1", "a78bfa"].map((c, i) => (
+                                    <div
+                                        key={i}
+                                        className="w-8 h-8 rounded-full border-2 border-[#07070f] flex items-center justify-center text-xs text-white font-bold"
+                                        style={{ backgroundColor: `#${c}` }}
+                                    >
                                         {["A", "B", "C", "D"][i]}
                                     </div>
                                 ))}
@@ -338,7 +377,6 @@ export default function ExpensifyLogin() {
                                 Trusted by <span className="text-white/80 font-semibold">15M+ members</span>
                             </p>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -346,13 +384,12 @@ export default function ExpensifyLogin() {
             {/* ── Right Panel ── */}
             <div
                 className="flex-1 flex items-center justify-center px-6 py-12 relative"
-                style={{ background: "#0d1210" }}
+                style={{ background: "#09090f" }}
             >
-                {/* Subtle corner accent */}
                 <div
                     className="absolute top-0 right-0 w-64 h-64 pointer-events-none"
                     style={{
-                        background: "radial-gradient(circle at top right, rgba(16,185,129,0.06), transparent 60%)",
+                        background: "radial-gradient(circle at top right, rgba(79,70,229,0.07), transparent 60%)",
                     }}
                 />
 
@@ -363,7 +400,7 @@ export default function ExpensifyLogin() {
                     <div className="flex items-center gap-2 mb-10 lg:hidden">
                         <div
                             className="w-7 h-7 rounded-lg flex items-center justify-center"
-                            style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+                            style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
                         >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -393,12 +430,12 @@ export default function ExpensifyLogin() {
                                             style={{
                                                 background:
                                                     step === s || (i === 0 && step === "password") || (i === 0 && step === "magic")
-                                                        ? "#10b981"
+                                                        ? "#4f46e5"
                                                         : "rgba(255,255,255,0.08)",
                                                 color:
                                                     step === s || (i === 0 && step === "password") || (i === 0 && step === "magic")
                                                         ? "#fff"
-                                                        : "#4a5c54",
+                                                        : "#332e5c",
                                             }}
                                         >
                                             {i === 0 && step !== "email" ? "✓" : i + 1}
@@ -406,7 +443,7 @@ export default function ExpensifyLogin() {
                                         {i < 1 && (
                                             <div
                                                 className="w-8 h-px transition-all duration-500"
-                                                style={{ background: step !== "email" ? "#10b981" : "rgba(255,255,255,0.1)" }}
+                                                style={{ background: step !== "email" ? "#4f46e5" : "rgba(255,255,255,0.1)" }}
                                             />
                                         )}
                                     </div>
@@ -421,21 +458,27 @@ export default function ExpensifyLogin() {
                             {step === "email" && "Welcome back"}
                             {step === "password" && "Enter password"}
                             {step === "magic" && (magicSent ? "Check your inbox" : "Magic link")}
-                            {step === "register" && "Create an account"}
+                            {step === "forgot" && "Reset password"}
+                            {step === "verify" && "Verify OTP"}
+                            {step === "reset" && "New password"}
+                            {step === "register" && "Create account"}
                         </h2>
-                        <p className="text-sm text-[#4a5c54] mb-7">
-                            {step === "email" && "Sign in to your AR HyperAutomation account"}
+                        <p className="text-sm text-[#332e5c] mb-7">
+                            {step === "email" && "Sign in to AR HyperAutomation account"}
                             {step === "password" && `Signing in as ${email}`}
                             {step === "magic" && !magicSent && "We'll send you a one-click login link"}
                             {step === "magic" && magicSent && `Sent to ${email}`}
-                            {step === "register" && "Join 15M+ members managing expenses smarter"}
+                            {step === "forgot" && "We'll send an OTP to your email"}
+                            {step === "verify" && `Enter the OTP sent to ${email}`}
+                            {step === "reset" && "Choose a strong new password"}
+                            {step === "register" && "Join AR HyperAutomation for free"}
                         </p>
 
                         {/* ── Email Step ── */}
                         {step === "email" && (
                             <form onSubmit={handleEmailSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-[#6b7c74] mb-2 uppercase tracking-wider">
+                                    <label className="block text-xs font-medium text-[#4a4470] mb-2 uppercase tracking-wider">
                                         Email address
                                     </label>
                                     <input
@@ -444,53 +487,38 @@ export default function ExpensifyLogin() {
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="you@company.com"
                                         required
-                                        className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#2e3c36] outline-none transition-all duration-200"
-                                        style={{
-                                            background: "rgba(255,255,255,0.05)",
-                                            border: "1px solid rgba(255,255,255,0.09)",
-                                        }}
-                                        onFocus={(e) => {
-                                            e.target.style.border = "1px solid rgba(16,185,129,0.5)";
-                                            e.target.style.background = "rgba(16,185,129,0.04)";
-                                        }}
-                                        onBlur={(e) => {
-                                            e.target.style.border = "1px solid rgba(255,255,255,0.09)";
-                                            e.target.style.background = "rgba(255,255,255,0.05)";
-                                        }}
+                                        className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                        style={inputBase}
+                                        onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                        onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                     />
                                 </div>
-
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98]"
-                                    style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
-                                >
-                                    Continue with email →
-                                </button>
+                                <PrimaryButton type="submit">Continue with email →</PrimaryButton>
                             </form>
                         )}
 
                         {/* ── Forgot Password Step ── */}
                         {step === "forgot" && (
                             <div className="space-y-4">
-                                <p className="text-sm text-[#4a5c54]">
-                                    Enter your email to reset password
-                                </p>
-
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@company.com"
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 text-white"
+                                    className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                    style={inputBase}
+                                    onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                    onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                 />
-
+                                <PrimaryButton onClick={() => setStep("verify")}>Send OTP</PrimaryButton>
                                 <button
-                                    onClick={() => setStep("verify")}
-                                    className="w-full py-3 rounded-xl text-white"
-                                    style={{ background: "#10b981" }}
+                                    onClick={() => setStep("password")}
+                                    className="w-full text-sm py-2 transition-colors"
+                                    style={{ color: "#332e5c" }}
+                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#818cf8"; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#332e5c"; }}
                                 >
-                                    Send OTP
+                                    ← Back to sign in
                                 </button>
                             </div>
                         )}
@@ -498,24 +526,16 @@ export default function ExpensifyLogin() {
                         {/* ── Verify OTP Step ── */}
                         {step === "verify" && (
                             <div className="space-y-4">
-                                <p className="text-sm text-[#4a5c54]">
-                                    Enter OTP sent to {email}
-                                </p>
-
                                 <input
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value)}
                                     placeholder="Enter OTP"
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 text-white"
+                                    className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                    style={inputBase}
+                                    onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                    onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                 />
-
-                                <button
-                                    onClick={() => setStep("reset")}
-                                    className="w-full py-3 rounded-xl text-white"
-                                    style={{ background: "#10b981" }}
-                                >
-                                    Verify OTP
-                                </button>
+                                <PrimaryButton onClick={() => setStep("reset")}>Verify OTP</PrimaryButton>
                             </div>
                         )}
 
@@ -527,24 +547,22 @@ export default function ExpensifyLogin() {
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     placeholder="New Password"
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 text-white"
+                                    className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                    style={inputBase}
+                                    onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                    onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                 />
-
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="Confirm Password"
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 text-white"
+                                    className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                    style={inputBase}
+                                    onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                    onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                 />
-
-                                <button
-                                    onClick={() => alert("Password Reset Success")}
-                                    className="w-full py-3 rounded-xl text-white"
-                                    style={{ background: "#10b981" }}
-                                >
-                                    Reset Password
-                                </button>
+                                <PrimaryButton onClick={() => alert("Password Reset Success")}>Reset Password</PrimaryButton>
                             </div>
                         )}
 
@@ -552,7 +570,7 @@ export default function ExpensifyLogin() {
                         {step === "password" && (
                             <form onSubmit={handlePasswordSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-[#6b7c74] mb-2 uppercase tracking-wider">
+                                    <label className="block text-xs font-medium text-[#4a4470] mb-2 uppercase tracking-wider">
                                         Password
                                     </label>
                                     <div className="relative">
@@ -563,29 +581,26 @@ export default function ExpensifyLogin() {
                                             placeholder="••••••••••••"
                                             required
                                             autoFocus
-                                            className="w-full rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[#2e3c36] outline-none transition-all duration-200"
-                                            style={{
-                                                background: "rgba(255,255,255,0.05)",
-                                                border: "1px solid rgba(255,255,255,0.09)",
-                                            }}
-                                            onFocus={(e) => {
-                                                e.target.style.border = "1px solid rgba(16,185,129,0.5)";
-                                                e.target.style.background = "rgba(16,185,129,0.04)";
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.border = "1px solid rgba(255,255,255,0.09)";
-                                                e.target.style.background = "rgba(255,255,255,0.05)";
-                                            }}
+                                            className="w-full rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                            style={inputBase}
+                                            onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                            onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a5c54] hover:text-[#6b7c74] transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#332e5c] hover:text-[#818cf8] transition-colors"
                                         >
                                             {showPassword ? (
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                                </svg>
                                             ) : (
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
                                             )}
                                         </button>
                                     </div>
@@ -593,8 +608,10 @@ export default function ExpensifyLogin() {
                                         <button
                                             type="button"
                                             onClick={() => setStep("forgot")}
-                                            className="text-xs"
-                                            style={{ color: "#10b981" }}
+                                            className="text-xs transition-colors"
+                                            style={{ color: "#818cf8" }}
+                                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#a5b4fc"; }}
+                                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#818cf8"; }}
                                         >
                                             Forgot password?
                                         </button>
@@ -605,28 +622,18 @@ export default function ExpensifyLogin() {
                                     type="submit"
                                     disabled={loading}
                                     className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-                                    style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+                                    style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
                                 >
-                                    {loading ? (
-                                        <>
-                                            <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
-                                                <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                                            </svg>
-                                            Signing in…
-                                        </>
-                                    ) : (
-                                        "Sign in →"
-                                    )}
+                                    {loading ? <><Spinner /> Signing in…</> : "Sign in →"}
                                 </button>
 
                                 <button
                                     type="button"
                                     onClick={() => setStep("magic")}
                                     className="w-full py-2.5 rounded-xl text-sm transition-all duration-200 text-center"
-                                    style={{ color: "#4a5c54" }}
-                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#10b981"; }}
-                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#4a5c54"; }}
+                                    style={{ color: "#332e5c" }}
+                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#818cf8"; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#332e5c"; }}
                                 >
                                     Use magic link instead
                                 </button>
@@ -636,34 +643,24 @@ export default function ExpensifyLogin() {
                         {/* ── Magic Link Step ── */}
                         {step === "magic" && !magicSent && (
                             <div className="space-y-4">
-                                <p className="text-sm text-[#4a5c54]">
+                                <p className="text-sm text-[#332e5c]">
                                     We'll send a secure one-click link to{" "}
-                                    <span style={{ color: "#10b981" }}>{email}</span>
+                                    <span style={{ color: "#818cf8" }}>{email}</span>
                                 </p>
                                 <button
                                     onClick={handleMagicLink}
                                     disabled={loading}
                                     className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-                                    style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+                                    style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
                                 >
-                                    {loading ? (
-                                        <>
-                                            <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
-                                                <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                                            </svg>
-                                            Sending…
-                                        </>
-                                    ) : (
-                                        "Send magic link ✦"
-                                    )}
+                                    {loading ? <><Spinner /> Sending…</> : "Send magic link ✦"}
                                 </button>
                                 <button
                                     onClick={() => setStep("password")}
                                     className="w-full text-sm transition-colors py-2"
-                                    style={{ color: "#3d4f47" }}
-                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#6b7c74"; }}
-                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3d4f47"; }}
+                                    style={{ color: "#221e40" }}
+                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#4a4470"; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#221e40"; }}
                                 >
                                     ← Back to password
                                 </button>
@@ -675,21 +672,26 @@ export default function ExpensifyLogin() {
                             <div className="text-center py-4 space-y-4">
                                 <div
                                     className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
-                                    style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}
+                                    style={{
+                                        background: "rgba(79,70,229,0.12)",
+                                        border: "1px solid rgba(79,70,229,0.3)",
+                                    }}
                                 >
-                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                                         <polyline points="22,6 12,13 2,6" />
                                     </svg>
                                 </div>
                                 <p className="text-white font-medium">Link sent!</p>
-                                <p className="text-sm text-[#4a5c54]">
+                                <p className="text-sm text-[#332e5c]">
                                     Check your inbox and click the link to sign in instantly.
                                 </p>
                                 <button
                                     onClick={() => { setStep("email"); setMagicSent(false); }}
                                     className="text-sm transition-colors"
-                                    style={{ color: "#10b981" }}
+                                    style={{ color: "#818cf8" }}
+                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#a5b4fc"; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#818cf8"; }}
                                 >
                                     Use a different email
                                 </button>
@@ -700,7 +702,7 @@ export default function ExpensifyLogin() {
                         {step === "register" && (
                             <form onSubmit={handleRegister} className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-[#6b7c74] mb-2 uppercase tracking-wider">
+                                    <label className="block text-xs font-medium text-[#4a4470] mb-2 uppercase tracking-wider">
                                         Full Name
                                     </label>
                                     <input
@@ -709,24 +711,15 @@ export default function ExpensifyLogin() {
                                         onChange={(e) => setRegisterName(e.target.value)}
                                         placeholder="John Doe"
                                         required
-                                        className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#2e3c36] outline-none transition-all duration-200"
-                                        style={{
-                                            background: "rgba(255,255,255,0.05)",
-                                            border: "1px solid rgba(255,255,255,0.09)",
-                                        }}
-                                        onFocus={(e) => {
-                                            e.target.style.border = "1px solid rgba(16,185,129,0.5)";
-                                            e.target.style.background = "rgba(16,185,129,0.04)";
-                                        }}
-                                        onBlur={(e) => {
-                                            e.target.style.border = "1px solid rgba(255,255,255,0.09)";
-                                            e.target.style.background = "rgba(255,255,255,0.05)";
-                                        }}
+                                        className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                        style={inputBase}
+                                        onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                        onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-[#6b7c74] mb-2 uppercase tracking-wider">
+                                    <label className="block text-xs font-medium text-[#4a4470] mb-2 uppercase tracking-wider">
                                         Email Address
                                     </label>
                                     <input
@@ -735,24 +728,15 @@ export default function ExpensifyLogin() {
                                         onChange={(e) => setRegisterEmail(e.target.value)}
                                         placeholder="you@company.com"
                                         required
-                                        className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#2e3c36] outline-none transition-all duration-200"
-                                        style={{
-                                            background: "rgba(255,255,255,0.05)",
-                                            border: "1px solid rgba(255,255,255,0.09)",
-                                        }}
-                                        onFocus={(e) => {
-                                            e.target.style.border = "1px solid rgba(16,185,129,0.5)";
-                                            e.target.style.background = "rgba(16,185,129,0.04)";
-                                        }}
-                                        onBlur={(e) => {
-                                            e.target.style.border = "1px solid rgba(255,255,255,0.09)";
-                                            e.target.style.background = "rgba(255,255,255,0.05)";
-                                        }}
+                                        className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                        style={inputBase}
+                                        onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                        onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-[#6b7c74] mb-2 uppercase tracking-wider">
+                                    <label className="block text-xs font-medium text-[#4a4470] mb-2 uppercase tracking-wider">
                                         Password
                                     </label>
                                     <div className="relative">
@@ -762,33 +746,30 @@ export default function ExpensifyLogin() {
                                             onChange={(e) => setRegisterPassword(e.target.value)}
                                             placeholder="Minimum 8 characters"
                                             required
-                                            className="w-full rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[#2e3c36] outline-none transition-all duration-200"
-                                            style={{
-                                                background: "rgba(255,255,255,0.05)",
-                                                border: "1px solid rgba(255,255,255,0.09)",
-                                            }}
-                                            onFocus={(e) => {
-                                                e.target.style.border = "1px solid rgba(16,185,129,0.5)";
-                                                e.target.style.background = "rgba(16,185,129,0.04)";
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.border = "1px solid rgba(255,255,255,0.09)";
-                                                e.target.style.background = "rgba(255,255,255,0.05)";
-                                            }}
+                                            className="w-full rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[#221e40] outline-none transition-all duration-200"
+                                            style={inputBase}
+                                            onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                                            onBlur={(e) => Object.assign(e.target.style, inputBase)}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a5c54] hover:text-[#6b7c74] transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#332e5c] hover:text-[#818cf8] transition-colors"
                                         >
                                             {showPassword ? (
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                                </svg>
                                             ) : (
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
                                             )}
                                         </button>
                                     </div>
-                                    <p className="text-xs text-[#4a5c54] mt-1">Password must be at least 8 characters</p>
+                                    <p className="text-xs text-[#4a4470] mt-1">Password must be at least 8 characters</p>
                                 </div>
 
                                 <div className="flex items-start gap-2">
@@ -798,46 +779,31 @@ export default function ExpensifyLogin() {
                                         checked={acceptTerms}
                                         onChange={(e) => setAcceptTerms(e.target.checked)}
                                         className="mt-1 rounded"
-                                        style={{ accentColor: "#10b981" }}
+                                        style={{ accentColor: "#4f46e5" }}
                                     />
-                                    <label htmlFor="acceptTerms" className="text-xs text-[#4a5c54] leading-relaxed">
+                                    <label htmlFor="acceptTerms" className="text-xs text-[#4a4470] leading-relaxed">
                                         I agree to the{" "}
-                                        <a href="#" className="underline transition-colors" style={{ color: "#10b981" }}>
+                                        <a href="#" className="underline transition-colors" style={{ color: "#818cf8" }}>
                                             Terms of Service
                                         </a>{" "}
                                         and{" "}
-                                        <a href="#" className="underline transition-colors" style={{ color: "#10b981" }}>
+                                        <a href="#" className="underline transition-colors" style={{ color: "#818cf8" }}>
                                             Privacy Policy
                                         </a>
                                     </label>
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-                                    style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
-                                                <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                                            </svg>
-                                            Creating account...
-                                        </>
-                                    ) : (
-                                        "Create Account →"
-                                    )}
-                                </button>
+                                <PrimaryButton type="submit" disabled={loading}>
+                                    {loading ? <><Spinner /> Creating account...</> : "Create Account →"}
+                                </PrimaryButton>
 
                                 <button
                                     type="button"
                                     onClick={() => setStep("email")}
-                                    className="w-full text-sm transition-colors py-2"
-                                    style={{ color: "#4a5c54" }}
-                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#6b7c74"; }}
-                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#4a5c54"; }}
+                                    className="w-full text-sm py-2 transition-colors"
+                                    style={{ color: "#332e5c" }}
+                                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#818cf8"; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#332e5c"; }}
                                 >
                                     ← Back to login
                                 </button>
@@ -846,28 +812,38 @@ export default function ExpensifyLogin() {
                     </div>
 
                     {/* Footer */}
-                    <p className="text-center text-xs text-[#2e3c36] mt-6 leading-relaxed">
+                    <p className="text-center text-xs text-[#1e1a38] mt-6 leading-relaxed">
                         By signing in, you agree to our{" "}
-                        <a href="#" className="underline transition-colors" style={{ color: "#3d4f47" }}
-                            onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.color = "#10b981"; }}
-                            onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.color = "#3d4f47"; }}>
+                        <a
+                            href="#"
+                            className="underline transition-colors"
+                            style={{ color: "#221e40" }}
+                            onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.color = "#818cf8"; }}
+                            onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.color = "#221e40"; }}
+                        >
                             Terms of Service
                         </a>{" "}
                         and{" "}
-                        <a href="#" className="underline transition-colors" style={{ color: "#3d4f47" }}
-                            onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.color = "#10b981"; }}
-                            onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.color = "#3d4f47"; }}>
+                        <a
+                            href="#"
+                            className="underline transition-colors"
+                            style={{ color: "#221e40" }}
+                            onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.color = "#818cf8"; }}
+                            onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.color = "#221e40"; }}
+                        >
                             Privacy Policy
                         </a>
                     </p>
 
-                    <p className="text-center text-xs text-[#2e3c36] mt-3">
+                    <p className="text-center text-xs text-[#1e1a38] mt-3">
                         New to AR HyperAutomation?{" "}
                         <a
                             href="#"
                             onClick={() => setStep("register")}
-                            className="font-medium"
-                            style={{ color: "#10b981" }}
+                            className="font-medium transition-colors"
+                            style={{ color: "#818cf8" }}
+                            onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.color = "#a5b4fc"; }}
+                            onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.color = "#818cf8"; }}
                         >
                             Create a free account
                         </a>
@@ -875,12 +851,11 @@ export default function ExpensifyLogin() {
                 </div>
             </div>
 
-            {/* Google Font */}
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; }
         input:-webkit-autofill {
-          -webkit-box-shadow: 0 0 0 1000px #111a15 inset !important;
+          -webkit-box-shadow: 0 0 0 1000px #0c0b1e inset !important;
           -webkit-text-fill-color: #fff !important;
         }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

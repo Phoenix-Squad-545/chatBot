@@ -7,6 +7,8 @@ import Settings from './pages/settings/Settings'
 import ChatbotPage from './pages/chatbot/Pages'
 import LoginPage from './pages/Login/LoginPage'
 import LoginPage1 from './pages/Login/LoginPage1'
+import LoginPage2 from './pages/Login/LoginPage2'
+import LoginPage3 from './pages/Login/LoginPage3'
 
 /**
  * Route table — layout receives navigation data as props (single source: data files + App).
@@ -15,11 +17,12 @@ function App() {
   return (
    <Routes>
   {/* Public */}
+  <Route path="/" element={<LoginPage1 />} />
   <Route path="/login" element={<LoginPage />} />
 
   {/* Private */}
   <Route element={<Layout sidebarItems={sidebarItems} navbarConfig={navbarConfig} />}>
-    <Route path="/" element={<Dashboard />} />
+    <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/settings" element={<Settings />} />
     <Route path="/chatbot" element={<ChatbotPage />} />
   </Route>

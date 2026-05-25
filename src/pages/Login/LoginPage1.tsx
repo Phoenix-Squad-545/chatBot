@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { loginService } from "../../services/authService";
 
-type AuthStep = "email" | "code";
+type AuthStep = "email" | "code" | "register";
 
 export default function LoginPage() {
   const [step, setStep] = useState<AuthStep>("email");
@@ -9,6 +10,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  
+  // Registration form state
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -47,6 +55,71 @@ export default function LoginPage() {
     setCountdown(30);
   };
 
+  // ✅ Registration API call
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!registerName.trim()) {
+      alert("Please enter your full name");
+      return;
+    }
+    if (!registerEmail.trim()) {
+      alert("Please enter your email");
+      return;
+    }
+    if (!registerPassword.trim()) {
+      alert("Please enter a password");
+      return;
+    }
+    if (registerPassword.length < 8) {
+      alert("Password must be at least 8 characters long");
+      return;
+    }
+    if (!acceptTerms) {
+      alert("Please accept the Terms of Service and Privacy Policy");
+      return;
+    }
+
+    setLoading(true);
+
+    // Prepare payload
+    const payload = {
+      name: registerName,
+      email: registerEmail,
+      password: registerPassword,
+      acceptTerms: acceptTerms
+    };
+
+    try {
+      // Replace this URL with your actual API endpoint
+     const response = await loginService(payload);
+
+      if (response) {
+        // Registration successful
+        alert("Registration successful! Please login.");
+        
+        // Auto-fill email for login
+        setEmail(registerEmail);
+        setStep("email");
+        
+        // Clear registration form
+        setRegisterName("");
+        setRegisterEmail("");
+        setRegisterPassword("");
+        setAcceptTerms(false);
+      } else {
+        // Handle API errors
+        alert(response.message || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Network error. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isCodeComplete = code.length === 6;
 
   return (
@@ -75,7 +148,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <span className="text-white text-xl font-bold tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>
-            Expensify
+            AR HyperAutomation
           </span>
         </div>
 
@@ -134,7 +207,7 @@ export default function LoginPage() {
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
               </svg>
             </div>
-            <span className="text-white text-xl font-bold">Expensify</span>
+            <span className="text-white text-xl font-bold">AR HyperAutomation</span>
           </div>
 
           {/* Card */}
@@ -146,17 +219,19 @@ export default function LoginPage() {
               boxShadow: "0 40px 80px rgba(0,0,0,0.4)",
             }}>
 
-            {/* Progress bar */}
-            <div className="flex items-center gap-2">
-              {(["email", "code"] as AuthStep[]).map((s, i) => (
-                <div key={s} className="h-1 rounded-full flex-1 transition-all duration-500"
-                  style={{
-                    backgroundColor: s === step ? "#818cf8"
-                      : (["email", "code"] as AuthStep[]).indexOf(step) > i ? "#4f46e5"
-                      : "rgba(255,255,255,0.1)",
-                  }} />
-              ))}
-            </div>
+            {/* Progress bar - Only show for non-register steps */}
+            {step !== "register" && (
+              <div className="flex items-center gap-2">
+                {(["email", "code"] as AuthStep[]).map((s, i) => (
+                  <div key={s} className="h-1 rounded-full flex-1 transition-all duration-500"
+                    style={{
+                      backgroundColor: s === step ? "#818cf8"
+                        : (["email", "code"] as AuthStep[]).indexOf(step) > i ? "#4f46e5"
+                        : "rgba(255,255,255,0.1)",
+                    }} />
+                ))}
+              </div>
+            )}
 
             {/* ── STEP 1: Email ── */}
             {step === "email" && (
@@ -190,7 +265,7 @@ export default function LoginPage() {
                   >
                     {sending
                       ? <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                      : "Send Magic Code →"}
+                      : "Continue with Email →"}
                   </button>
                 </form>
 
@@ -216,7 +291,7 @@ export default function LoginPage() {
 
                 <p className="text-center text-white/30 text-xs">
                   Don't have an account?{" "}
-                  <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">Create one free</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setStep("register"); }} className="text-indigo-400 hover:text-indigo-300 transition-colors">Create one free</a>
                 </p>
               </>
             )}
@@ -317,20 +392,143 @@ export default function LoginPage() {
                   >
                     ← Use a different email
                   </button>
+
+                  <p className="text-center text-white/30 text-xs mt-2">
+                    New to AR HyperAutomation?{" "}
+                    <a href="#" onClick={(e) => { e.preventDefault(); setStep("register"); }} className="text-indigo-400 hover:text-indigo-300 transition-colors">Create a free account</a>
+                  </p>
                 </form>
               </>
             )}
+
+            {/* ── STEP 3: Register ── */}
+            {step === "register" && (
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div>
+                  <h2 className="text-white text-3xl font-bold mb-1" style={{ fontFamily: "'Georgia', serif" }}>
+                    Create an account
+                  </h2>
+                  <p className="text-white/40 text-sm">Join 15M+ members managing expenses smarter</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white/50 text-xs tracking-widest uppercase">Full Name</label>
+                  <input
+                    type="text"
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    placeholder="John Doe"
+                    required
+                    className="w-full rounded-xl px-4 py-3.5 text-white placeholder-white/20 text-sm outline-none transition-all focus:ring-2 focus:ring-indigo-500"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white/50 text-xs tracking-widest uppercase">Email Address</label>
+                  <input
+                    type="email"
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    required
+                    className="w-full rounded-xl px-4 py-3.5 text-white placeholder-white/20 text-sm outline-none transition-all focus:ring-2 focus:ring-indigo-500"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white/50 text-xs tracking-widest uppercase">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={registerPassword}
+                      onChange={(e) => setRegisterPassword(e.target.value)}
+                      placeholder="Minimum 8 characters"
+                      required
+                      className="w-full rounded-xl px-4 py-3.5 pr-12 text-white placeholder-white/20 text-sm outline-none transition-all focus:ring-2 focus:ring-indigo-500"
+                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
+                    >
+                      {showPassword ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-white/30 text-xs mt-1">Password must be at least 8 characters</p>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className="mt-1 rounded"
+                    style={{ accentColor: "#818cf8" }}
+                  />
+                  <label htmlFor="acceptTerms" className="text-white/40 text-xs leading-relaxed">
+                    I agree to the{" "}
+                    <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-2">
+                      Terms of Service
+                    </a>{" "}
+                    and{" "}
+                    <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-2">
+                      Privacy Policy
+                    </a>
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+                  style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 8px 24px rgba(16,185,129,0.4)" }}
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account →"
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setStep("email"); setRegisterName(""); setRegisterEmail(""); setRegisterPassword(""); setAcceptTerms(false); }}
+                  className="w-full text-white/40 text-sm hover:text-white/60 transition-colors py-2"
+                >
+                  ← Back to login
+                </button>
+              </form>
+            )}
           </div>
 
-          {/* Trust badges */}
-          <div className="flex items-center justify-center gap-6 mt-6">
-            {["SOC 2 Type II", "GDPR", "256-bit SSL"].map((badge) => (
-              <div key={badge} className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-emerald-500/60" />
-                <span className="text-white/25 text-xs">{badge}</span>
-              </div>
-            ))}
-          </div>
+          {/* Trust badges - Only show for non-register steps */}
+          {step !== "register" && (
+            <div className="flex items-center justify-center gap-6 mt-6">
+              {["SOC 2 Type II", "GDPR", "256-bit SSL"].map((badge) => (
+                <div key={badge} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500/60" />
+                  <span className="text-white/25 text-xs">{badge}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
