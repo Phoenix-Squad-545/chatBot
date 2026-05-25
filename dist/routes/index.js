@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const prompt_router_1 = __importDefault(require("../modules/prompt/prompt.router"));
+const travel_router_1 = __importDefault(require("../modules/travel/travel.router"));
+const flight_router_1 = __importDefault(require("../modules/flight/flight.router"));
+const hotel_router_1 = __importDefault(require("../modules/hotel/hotel.router"));
+const car_router_1 = __importDefault(require("../modules/car/car.router"));
+const user_router_1 = __importDefault(require("../modules/users/user.router"));
+const routeName_1 = require("../constants/routeName");
+const router = express_1.default.Router();
+router.use(`/${routeName_1.CHAT_ROUTE}`, prompt_router_1.default);
+router.use(`/${routeName_1.TRAVEL_ROUTE}`, travel_router_1.default);
+router.use(`/${routeName_1.FLIGHT_ROUTE}`, flight_router_1.default);
+router.use(`/${routeName_1.HOTEL_ROUTE}`, hotel_router_1.default);
+router.use(`/${routeName_1.CAR_ROUTE}`, car_router_1.default);
+router.use(`/${routeName_1.USER_ROUTE}`, user_router_1.default);
+exports.default = router;

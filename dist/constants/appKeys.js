@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FAILED = exports.SUCCESS = exports.PENDING = exports.WALLET_PAYMENT = exports.UPI_PAYMENT = exports.CARD_PAYMENT = exports.OTHERS = exports.CAR = exports.HOTEL = exports.FLIGHT = exports.USER = exports.SYSTEM = exports.GPT_TYPE = void 0;
+exports.GPT_TYPE = "gpt-4o-mini";
+exports.SYSTEM = "system";
+exports.USER = "user";
+exports.FLIGHT = "Flight";
+exports.HOTEL = "Hotel";
+exports.CAR = "Car";
+exports.OTHERS = "Others";
+exports.CARD_PAYMENT = "Card";
+exports.UPI_PAYMENT = "UPI";
+exports.WALLET_PAYMENT = "Wallet";
+exports.PENDING = "pending";
+exports.SUCCESS = "success";
+exports.FAILED = "failed";

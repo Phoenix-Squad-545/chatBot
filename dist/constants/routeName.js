@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.USER_ROUTE = exports.CAR_ROUTE = exports.HOTEL_ROUTE = exports.FLIGHT_ROUTE = exports.TRAVEL_ROUTE = exports.CHAT_ROUTE = exports.API_ROUTE = void 0;
+exports.API_ROUTE = "api";
+exports.CHAT_ROUTE = "chat";
+exports.TRAVEL_ROUTE = "travel";
+exports.FLIGHT_ROUTE = "flight";
+exports.HOTEL_ROUTE = "hotel";
+exports.CAR_ROUTE = "car";
+exports.USER_ROUTE = "user";

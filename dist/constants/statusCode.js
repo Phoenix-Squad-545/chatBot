@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SERVICE_UNAVAILABLE_CODE = exports.BAD_GATEWAY_CODE = exports.INTERNAL_SERVER_ERROR_CODE = exports.UNPROCESSABLE_ENTITY_CODE = exports.CONFLICT_CODE = exports.NOT_FOUND_CODE = exports.FORBIDDEN_CODE = exports.UNAUTHORIZED_CODE = exports.BAD_REQUEST_CODE = exports.NO_CONTENT_CODE = exports.CREATED_DOC_CODE = exports.SUCCESS_CODE = void 0;
+exports.SUCCESS_CODE = 200;
+exports.CREATED_DOC_CODE = 201;
+exports.NO_CONTENT_CODE = 204;
+exports.BAD_REQUEST_CODE = 400;
+exports.UNAUTHORIZED_CODE = 401;
+exports.FORBIDDEN_CODE = 403;
+exports.NOT_FOUND_CODE = 404;
+exports.CONFLICT_CODE = 409;
+exports.UNPROCESSABLE_ENTITY_CODE = 422;
+exports.INTERNAL_SERVER_ERROR_CODE = 500;
+exports.BAD_GATEWAY_CODE = 502;
+exports.SERVICE_UNAVAILABLE_CODE = 503;
