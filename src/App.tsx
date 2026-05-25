@@ -17,7 +17,8 @@ function App() {
   return (
    <Routes>
   {/* Public */}
-  <Route path="/" element={<LoginPage1 />} />
+  {/* <Route path="/" element={<LoginPage1 />} /> */}
+  <Route path="/" element={<Dashboard />} />
   <Route path="/login" element={<LoginPage />} />
 
   {/* Private */}
